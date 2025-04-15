@@ -1,0 +1,34 @@
+# Source files (will be compiled to dist)
+src/
+__tests__/
+
+# Development files
+.git/
+.gitignore
+.npmignore
+.prettierrc
+vite.config.ts
+vitest.config.ts
+tsconfig.json
+
+# Testing
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# npm pack
+*.tgz
