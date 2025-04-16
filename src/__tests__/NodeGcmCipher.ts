@@ -18,7 +18,12 @@ export class NodeGcmCipher extends AbstractGcmCipher {
     plaintext: Uint8Array;
     aad: Uint8Array;
   }): Promise<{ ciphertext: Uint8Array; tag: Uint8Array }> {
-    const nodeCipher = crypto.createCipheriv('aes-128-gcm', encRawKey, iv);
+    const algorithm = `aes-${encRawKey.length * 8}-gcm`;
+    const nodeCipher = crypto.createCipheriv(
+      algorithm,
+      encRawKey,
+      iv,
+    ) as crypto.CipherGCM;
     nodeCipher.setAAD(aad);
     const nodeResult = Buffer.concat([
       nodeCipher.update(plaintext),
@@ -44,7 +49,12 @@ export class NodeGcmCipher extends AbstractGcmCipher {
     tag: Uint8Array;
     aad: Uint8Array;
   }): Promise<Uint8Array> {
-    const nodeDecipher = crypto.createDecipheriv('aes-128-gcm', encRawKey, iv);
+    const algorithm = `aes-${encRawKey.length * 8}-gcm`;
+    const nodeDecipher = crypto.createDecipheriv(
+      algorithm,
+      encRawKey,
+      iv,
+    ) as crypto.DecipherGCM;
     nodeDecipher.setAAD(aad);
     nodeDecipher.setAuthTag(tag);
     const nodeResult = Buffer.concat([
