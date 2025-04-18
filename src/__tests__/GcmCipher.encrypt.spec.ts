@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NodeGcmCipher } from 'expo-aes-universal-node';
 import { NativeGcmCipher } from '../NativeGcmCipher';
-import { NodeGcmCipher } from './NodeGcmCipher';
 import { CryptoModule } from 'expo-crypto-universal';
+
+const keyConfigs = [
+  { enc: 'A128GCM', keyBytes: 16 },
+  { enc: 'A192GCM', keyBytes: 24 },
+  { enc: 'A256GCM', keyBytes: 32 },
+] as const;
 
 describe('GcmCipher.encrypt', () => {
   let mockCryptoModule: CryptoModule;
@@ -18,14 +24,10 @@ describe('GcmCipher.encrypt', () => {
     nodeCipher = new NodeGcmCipher(mockCryptoModule);
   });
 
-  it.each([
-    ['A128GCM', 16],
-    ['A192GCM', 24],
-    ['A256GCM', 32],
-  ] as const)(
-    'should produce the same result across all implementations for %s (cek length: %d)',
-    async (enc, cekLength) => {
-      const cek = new Uint8Array(cekLength).fill(0xaa);
+  it.each(keyConfigs)(
+    'should produce the same result across all implementations for %s',
+    async ({ enc, keyBytes }) => {
+      const cek = new Uint8Array(keyBytes).fill(0xaa);
       const plaintext = new Uint8Array([1, 2, 3]);
       const aad = new Uint8Array([4, 5, 6]);
 
@@ -42,20 +44,14 @@ describe('GcmCipher.encrypt', () => {
         aad,
       });
 
-      expect(nativeResult.ciphertext).toEqual(nodeResult.ciphertext);
-      expect(nativeResult.tag).toEqual(nodeResult.tag);
-      expect(nativeResult.iv).toEqual(nodeResult.iv);
+      expect(nativeResult).toEqual(nodeResult);
     },
   );
 
-  it.each([
-    ['A128GCM', 16],
-    ['A192GCM', 24],
-    ['A256GCM', 32],
-  ] as const)(
-    'should handle empty plaintext consistently for %s (cek length: %d)',
-    async (enc, cekLength) => {
-      const cek = new Uint8Array(cekLength).fill(0xaa);
+  it.each(keyConfigs)(
+    'should handle empty plaintext consistently for %s',
+    async ({ enc, keyBytes }) => {
+      const cek = new Uint8Array(keyBytes).fill(0xaa);
       const plaintext = new Uint8Array(0);
       const aad = new Uint8Array([4, 5, 6]);
 
@@ -72,20 +68,14 @@ describe('GcmCipher.encrypt', () => {
         aad,
       });
 
-      expect(nativeResult.ciphertext).toEqual(nodeResult.ciphertext);
-      expect(nativeResult.tag).toEqual(nodeResult.tag);
-      expect(nativeResult.iv).toEqual(nodeResult.iv);
+      expect(nativeResult).toEqual(nodeResult);
     },
   );
 
-  it.each([
-    ['A128GCM', 16],
-    ['A192GCM', 24],
-    ['A256GCM', 32],
-  ] as const)(
-    'should handle empty AAD consistently for %s (cek length: %d)',
-    async (enc, cekLength) => {
-      const cek = new Uint8Array(cekLength).fill(0xaa);
+  it.each(keyConfigs)(
+    'should handle empty AAD consistently for %s',
+    async ({ enc, keyBytes }) => {
+      const cek = new Uint8Array(keyBytes).fill(0xaa);
       const plaintext = new Uint8Array([1, 2, 3]);
       const aad = new Uint8Array(0);
 
@@ -102,9 +92,7 @@ describe('GcmCipher.encrypt', () => {
         aad,
       });
 
-      expect(nativeResult.ciphertext).toEqual(nodeResult.ciphertext);
-      expect(nativeResult.tag).toEqual(nodeResult.tag);
-      expect(nativeResult.iv).toEqual(nodeResult.iv);
+      expect(nativeResult).toEqual(nodeResult);
     },
   );
 });

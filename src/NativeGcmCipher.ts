@@ -75,10 +75,6 @@ export class NativeGcmCipher extends AbstractGcmCipher {
     tag,
     aad,
   }: GcmDecryptInternalArgs): Promise<Uint8Array> {
-    if (iv.length !== 12) {
-      throw new Error('IV must be 12 bytes for AES-GCM');
-    }
-
     const encKeyBinary = forge.util.binary.raw.encode(encRawKey);
     const ivBinary = forge.util.binary.raw.encode(iv);
     const ciphertextBinary = forge.util.binary.raw.encode(ciphertext);

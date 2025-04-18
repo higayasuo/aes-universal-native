@@ -1,8 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NodeCbcCipher } from 'expo-aes-universal-node';
 import { NativeCbcCipher } from '../NativeCbcCipher';
-import { NodeCbcCipher } from './NodeCbcCipher';
 import { CryptoModule } from 'expo-crypto-universal';
 import crypto from 'crypto';
+
+const keyConfigs = [
+  { enc: 'A128CBC-HS256', keyBytes: 16 },
+  { enc: 'A192CBC-HS384', keyBytes: 24 },
+  { enc: 'A256CBC-HS512', keyBytes: 32 },
+] as const;
 
 describe('CbcCipher.generateTag', () => {
   let mockCryptoModule: CryptoModule;
@@ -24,66 +30,69 @@ describe('CbcCipher.generateTag', () => {
     nodeCipher = new NodeCbcCipher(mockCryptoModule);
   });
 
-  it.each([{ keyBits: 128 }, { keyBits: 192 }, { keyBits: 256 }])(
-    'should produce the same result across all implementations for keyBits %j',
-    async ({ keyBits }) => {
-      const macRawKey = new Uint8Array(keyBits / 8).fill(0xaa);
+  it.each(keyConfigs)(
+    'should produce the same result across all implementations for %s',
+    async ({ keyBytes }) => {
+      const macRawKey = new Uint8Array(keyBytes).fill(0xaa);
       const macData = new Uint8Array([1, 2, 3]);
 
       const nativeResult = await nativeCipher.generateTag({
         macRawKey,
         macData,
-        keyBits,
+        keyBits: keyBytes * 8,
       });
       const nodeResult = await nodeCipher.generateTag({
         macRawKey,
         macData,
-        keyBits,
+        keyBits: keyBytes * 8,
       });
 
       expect(nativeResult).toEqual(nodeResult);
+      expect(nativeResult.length).toBe(keyBytes);
     },
   );
 
-  it.each([{ keyBits: 128 }, { keyBits: 192 }, { keyBits: 256 }])(
-    'should handle key size %j consistently',
-    async ({ keyBits }) => {
-      const macRawKey = new Uint8Array(keyBits / 8).fill(0xaa);
+  it.each(keyConfigs)(
+    'should handle key size %s consistently',
+    async ({ keyBytes }) => {
+      const macRawKey = new Uint8Array(keyBytes).fill(0xaa);
       const macData = new Uint8Array([1, 2, 3]);
 
       const nativeResult = await nativeCipher.generateTag({
         macRawKey,
         macData,
-        keyBits,
+        keyBits: keyBytes * 8,
       });
       const nodeResult = await nodeCipher.generateTag({
         macRawKey,
         macData,
-        keyBits,
+        keyBits: keyBytes * 8,
       });
 
       expect(nativeResult).toEqual(nodeResult);
+      expect(nativeResult.length).toBe(keyBytes);
     },
   );
 
-  it.each([{ keyBits: 128 }, { keyBits: 192 }, { keyBits: 256 }])(
-    'should handle empty macData consistently for keyBits %j',
-    async ({ keyBits }) => {
-      const macRawKey = new Uint8Array(keyBits / 8).fill(0xaa);
+  it.each(keyConfigs)(
+    'should handle empty macData consistently for %s',
+    async ({ keyBytes }) => {
+      const macRawKey = new Uint8Array(keyBytes).fill(0xaa);
       const macData = new Uint8Array(0);
 
       const nativeResult = await nativeCipher.generateTag({
         macRawKey,
         macData,
-        keyBits,
+        keyBits: keyBytes * 8,
       });
       const nodeResult = await nodeCipher.generateTag({
         macRawKey,
         macData,
-        keyBits,
+        keyBits: keyBytes * 8,
       });
 
       expect(nativeResult).toEqual(nodeResult);
+      expect(nativeResult.length).toBe(keyBytes);
     },
   );
 });

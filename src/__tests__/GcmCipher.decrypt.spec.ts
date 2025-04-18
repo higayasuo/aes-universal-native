@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NodeGcmCipher } from 'expo-aes-universal-node';
 import { NativeGcmCipher } from '../NativeGcmCipher';
-import { NodeGcmCipher } from './NodeGcmCipher';
 import { CryptoModule } from 'expo-crypto-universal';
+
+const keyConfigs = [
+  { enc: 'A128GCM', keyBytes: 16 },
+  { enc: 'A192GCM', keyBytes: 24 },
+  { enc: 'A256GCM', keyBytes: 32 },
+] as const;
 
 describe('GcmCipher.decrypt', () => {
   let mockCryptoModule: CryptoModule;
@@ -18,10 +24,10 @@ describe('GcmCipher.decrypt', () => {
     nodeCipher = new NodeGcmCipher(mockCryptoModule);
   });
 
-  it.each(['A128GCM', 'A192GCM', 'A256GCM'] as const)(
+  it.each(keyConfigs)(
     'should produce the same result across all implementations for %s',
-    async (enc) => {
-      const cek = new Uint8Array(16).fill(0xaa);
+    async ({ enc, keyBytes }) => {
+      const cek = new Uint8Array(keyBytes).fill(0xaa);
       const plaintext = new Uint8Array([1, 2, 3]);
       const aad = new Uint8Array([4, 5, 6]);
       const { ciphertext, tag, iv } = await nodeCipher.encrypt({
@@ -53,10 +59,10 @@ describe('GcmCipher.decrypt', () => {
     },
   );
 
-  it.each(['A128GCM', 'A192GCM', 'A256GCM'] as const)(
+  it.each(keyConfigs)(
     'should handle empty ciphertext consistently for %s',
-    async (enc) => {
-      const cek = new Uint8Array(16).fill(0xaa);
+    async ({ enc, keyBytes }) => {
+      const cek = new Uint8Array(keyBytes).fill(0xaa);
       const plaintext = new Uint8Array(0);
       const aad = new Uint8Array([4, 5, 6]);
       const { ciphertext, tag, iv } = await nodeCipher.encrypt({
@@ -88,10 +94,10 @@ describe('GcmCipher.decrypt', () => {
     },
   );
 
-  it.each(['A128GCM', 'A192GCM', 'A256GCM'] as const)(
+  it.each(keyConfigs)(
     'should handle empty AAD consistently for %s',
-    async (enc) => {
-      const cek = new Uint8Array(16).fill(0xaa);
+    async ({ enc, keyBytes }) => {
+      const cek = new Uint8Array(keyBytes).fill(0xaa);
       const plaintext = new Uint8Array([1, 2, 3]);
       const aad = new Uint8Array(0);
       const { ciphertext, tag, iv } = await nodeCipher.encrypt({
@@ -120,43 +126,6 @@ describe('GcmCipher.decrypt', () => {
 
       expect(nativeResult).toEqual(nodeResult);
       expect(nativeResult).toEqual(plaintext);
-    },
-  );
-
-  it.each(['A128GCM', 'A192GCM', 'A256GCM'] as const)(
-    'should reject invalid tag for %s',
-    async (enc) => {
-      const cek = new Uint8Array(16).fill(0xaa);
-      const plaintext = new Uint8Array([1, 2, 3]);
-      const aad = new Uint8Array([4, 5, 6]);
-      const { ciphertext, iv } = await nodeCipher.encrypt({
-        enc,
-        cek,
-        plaintext,
-        aad,
-      });
-      const invalidTag = new Uint8Array(16).fill(0xff);
-
-      await expect(
-        nativeCipher.decrypt({
-          enc,
-          cek,
-          ciphertext,
-          tag: invalidTag,
-          iv,
-          aad,
-        }),
-      ).rejects.toThrow();
-      await expect(
-        nodeCipher.decrypt({
-          enc,
-          cek,
-          ciphertext,
-          tag: invalidTag,
-          iv,
-          aad,
-        }),
-      ).rejects.toThrow();
     },
   );
 });

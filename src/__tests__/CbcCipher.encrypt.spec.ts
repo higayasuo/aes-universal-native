@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NodeCbcCipher } from 'expo-aes-universal-node';
 import { NativeCbcCipher } from '../NativeCbcCipher';
-import { NodeCbcCipher } from './NodeCbcCipher';
 import { CryptoModule } from 'expo-crypto-universal';
+
+const keyConfigs = [
+  { enc: 'A128CBC-HS256', keyBytes: 16 },
+  { enc: 'A192CBC-HS384', keyBytes: 24 },
+  { enc: 'A256CBC-HS512', keyBytes: 32 },
+] as const;
 
 describe('CbcCipher.encrypt', () => {
   let mockCryptoModule: CryptoModule;
@@ -18,14 +24,10 @@ describe('CbcCipher.encrypt', () => {
     nodeCipher = new NodeCbcCipher(mockCryptoModule);
   });
 
-  it.each([
-    ['A128CBC-HS256', 32],
-    ['A192CBC-HS384', 48],
-    ['A256CBC-HS512', 64],
-  ] as const)(
+  it.each(keyConfigs)(
     'should produce the same result across all implementations for %s',
-    async (enc, cekLength) => {
-      const cek = new Uint8Array(cekLength).fill(0xaa);
+    async ({ enc, keyBytes }) => {
+      const cek = new Uint8Array(keyBytes * 2).fill(0xaa);
       const plaintext = new Uint8Array([1, 2, 3]);
       const aad = new Uint8Array([4, 5, 6]);
 
@@ -42,21 +44,14 @@ describe('CbcCipher.encrypt', () => {
         aad,
       });
 
-      expect(nativeResult.ciphertext).toEqual(nodeResult.ciphertext);
-      expect(nativeResult.tag).toEqual(nodeResult.tag);
-      expect(nativeResult.iv).toEqual(nodeResult.iv);
-      expect(nativeResult.iv).toEqual(new Uint8Array(16).fill(0x42));
+      expect(nativeResult).toEqual(nodeResult);
     },
   );
 
-  it.each([
-    ['A128CBC-HS256', 32],
-    ['A192CBC-HS384', 48],
-    ['A256CBC-HS512', 64],
-  ] as const)(
+  it.each(keyConfigs)(
     'should handle empty plaintext consistently for %s',
-    async (enc, cekLength) => {
-      const cek = new Uint8Array(cekLength).fill(0xaa);
+    async ({ enc, keyBytes }) => {
+      const cek = new Uint8Array(keyBytes * 2).fill(0xaa);
       const plaintext = new Uint8Array(0);
       const aad = new Uint8Array([4, 5, 6]);
 
@@ -73,21 +68,14 @@ describe('CbcCipher.encrypt', () => {
         aad,
       });
 
-      expect(nativeResult.ciphertext).toEqual(nodeResult.ciphertext);
-      expect(nativeResult.tag).toEqual(nodeResult.tag);
-      expect(nativeResult.iv).toEqual(nodeResult.iv);
-      expect(nativeResult.iv).toEqual(new Uint8Array(16).fill(0x42));
+      expect(nativeResult).toEqual(nodeResult);
     },
   );
 
-  it.each([
-    ['A128CBC-HS256', 32],
-    ['A192CBC-HS384', 48],
-    ['A256CBC-HS512', 64],
-  ] as const)(
+  it.each(keyConfigs)(
     'should handle empty AAD consistently for %s',
-    async (enc, cekLength) => {
-      const cek = new Uint8Array(cekLength).fill(0xaa);
+    async ({ enc, keyBytes }) => {
+      const cek = new Uint8Array(keyBytes * 2).fill(0xaa);
       const plaintext = new Uint8Array([1, 2, 3]);
       const aad = new Uint8Array(0);
 
@@ -104,10 +92,7 @@ describe('CbcCipher.encrypt', () => {
         aad,
       });
 
-      expect(nativeResult.ciphertext).toEqual(nodeResult.ciphertext);
-      expect(nativeResult.tag).toEqual(nodeResult.tag);
-      expect(nativeResult.iv).toEqual(nodeResult.iv);
-      expect(nativeResult.iv).toEqual(new Uint8Array(16).fill(0x42));
+      expect(nativeResult).toEqual(nodeResult);
     },
   );
 });

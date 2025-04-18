@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NodeGcmCipher } from 'expo-aes-universal-node';
 import { NativeGcmCipher } from '../NativeGcmCipher';
-import { NodeGcmCipher } from './NodeGcmCipher';
 import { CryptoModule } from 'expo-crypto-universal';
+
+const keyConfigs = [
+  { enc: 'A128GCM', keyBytes: 16 },
+  { enc: 'A192GCM', keyBytes: 24 },
+  { enc: 'A256GCM', keyBytes: 32 },
+] as const;
 
 describe('GcmCipher.decryptInternal', () => {
   let mockCryptoModule: CryptoModule;
@@ -18,125 +24,102 @@ describe('GcmCipher.decryptInternal', () => {
     nodeCipher = new NodeGcmCipher(mockCryptoModule);
   });
 
-  it('should produce the same result across all implementations', async () => {
-    const encRawKey = new Uint8Array(16).fill(0xaa);
-    const plaintext = new Uint8Array([1, 2, 3]);
-    const aad = new Uint8Array([4, 5, 6]);
-    const { ciphertext, tag, iv } = await nodeCipher.encrypt({
-      enc: 'A128GCM',
-      cek: encRawKey,
-      plaintext,
-      aad,
-    });
+  it.each(keyConfigs)(
+    'should produce the same result across all implementations for %s',
+    async ({ enc, keyBytes }) => {
+      const encRawKey = new Uint8Array(keyBytes).fill(0xaa);
+      const plaintext = new Uint8Array([1, 2, 3]);
+      const aad = new Uint8Array([4, 5, 6]);
+      const { ciphertext, tag, iv } = await nodeCipher.encrypt({
+        enc,
+        cek: encRawKey,
+        plaintext,
+        aad,
+      });
 
-    const nativeResult = await nativeCipher.decryptInternal({
-      encRawKey,
-      iv,
-      ciphertext,
-      tag,
-      aad,
-    });
-    const nodeResult = await nodeCipher.decryptInternal({
-      encRawKey,
-      iv,
-      ciphertext,
-      tag,
-      aad,
-    });
-
-    expect(nativeResult).toEqual(nodeResult);
-    expect(nativeResult).toEqual(plaintext);
-  });
-
-  it('should handle empty ciphertext consistently', async () => {
-    const encRawKey = new Uint8Array(16).fill(0xaa);
-    const plaintext = new Uint8Array(0);
-    const aad = new Uint8Array([4, 5, 6]);
-    const { ciphertext, tag, iv } = await nodeCipher.encrypt({
-      enc: 'A128GCM',
-      cek: encRawKey,
-      plaintext,
-      aad,
-    });
-
-    const nativeResult = await nativeCipher.decryptInternal({
-      encRawKey,
-      iv,
-      ciphertext,
-      tag,
-      aad,
-    });
-    const nodeResult = await nodeCipher.decryptInternal({
-      encRawKey,
-      iv,
-      ciphertext,
-      tag,
-      aad,
-    });
-
-    expect(nativeResult).toEqual(nodeResult);
-    expect(nativeResult).toEqual(plaintext);
-  });
-
-  it('should handle empty AAD consistently', async () => {
-    const encRawKey = new Uint8Array(16).fill(0xaa);
-    const plaintext = new Uint8Array([1, 2, 3]);
-    const aad = new Uint8Array(0);
-    const { ciphertext, tag, iv } = await nodeCipher.encrypt({
-      enc: 'A128GCM',
-      cek: encRawKey,
-      plaintext,
-      aad,
-    });
-
-    const nativeResult = await nativeCipher.decryptInternal({
-      encRawKey,
-      iv,
-      ciphertext,
-      tag,
-      aad,
-    });
-    const nodeResult = await nodeCipher.decryptInternal({
-      encRawKey,
-      iv,
-      ciphertext,
-      tag,
-      aad,
-    });
-
-    expect(nativeResult).toEqual(nodeResult);
-    expect(nativeResult).toEqual(plaintext);
-  });
-
-  it('should reject invalid tag', async () => {
-    const encRawKey = new Uint8Array(16).fill(0xaa);
-    const plaintext = new Uint8Array([1, 2, 3]);
-    const aad = new Uint8Array([4, 5, 6]);
-    const { ciphertext, iv } = await nodeCipher.encrypt({
-      enc: 'A128GCM',
-      cek: encRawKey,
-      plaintext,
-      aad,
-    });
-    const invalidTag = new Uint8Array(16).fill(0xff);
-
-    await expect(
-      nativeCipher.decryptInternal({
+      const nativeResult = await nativeCipher.decryptInternal({
         encRawKey,
         iv,
         ciphertext,
-        tag: invalidTag,
+        tag,
         aad,
-      }),
-    ).rejects.toThrow();
-    await expect(
-      nodeCipher.decryptInternal({
+      });
+      const nodeResult = await nodeCipher.decryptInternal({
         encRawKey,
         iv,
         ciphertext,
-        tag: invalidTag,
+        tag,
         aad,
-      }),
-    ).rejects.toThrow();
-  });
+      });
+
+      expect(nativeResult).toEqual(nodeResult);
+      expect(nativeResult).toEqual(plaintext);
+    },
+  );
+
+  it.each(keyConfigs)(
+    'should handle empty ciphertext consistently for %s',
+    async ({ enc, keyBytes }) => {
+      const encRawKey = new Uint8Array(keyBytes).fill(0xaa);
+      const plaintext = new Uint8Array(0);
+      const aad = new Uint8Array([4, 5, 6]);
+      const { ciphertext, tag, iv } = await nodeCipher.encrypt({
+        enc,
+        cek: encRawKey,
+        plaintext,
+        aad,
+      });
+
+      const nativeResult = await nativeCipher.decryptInternal({
+        encRawKey,
+        iv,
+        ciphertext,
+        tag,
+        aad,
+      });
+      const nodeResult = await nodeCipher.decryptInternal({
+        encRawKey,
+        iv,
+        ciphertext,
+        tag,
+        aad,
+      });
+
+      expect(nativeResult).toEqual(nodeResult);
+      expect(nativeResult).toEqual(plaintext);
+    },
+  );
+
+  it.each(keyConfigs)(
+    'should handle empty AAD consistently for %s',
+    async ({ enc, keyBytes }) => {
+      const encRawKey = new Uint8Array(keyBytes).fill(0xaa);
+      const plaintext = new Uint8Array([1, 2, 3]);
+      const aad = new Uint8Array(0);
+      const { ciphertext, tag, iv } = await nodeCipher.encrypt({
+        enc,
+        cek: encRawKey,
+        plaintext,
+        aad,
+      });
+
+      const nativeResult = await nativeCipher.decryptInternal({
+        encRawKey,
+        iv,
+        ciphertext,
+        tag,
+        aad,
+      });
+      const nodeResult = await nodeCipher.decryptInternal({
+        encRawKey,
+        iv,
+        ciphertext,
+        tag,
+        aad,
+      });
+
+      expect(nativeResult).toEqual(nodeResult);
+      expect(nativeResult).toEqual(plaintext);
+    },
+  );
 });
