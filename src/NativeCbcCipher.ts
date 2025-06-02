@@ -1,11 +1,11 @@
-import { CryptoModule } from 'expo-crypto-universal';
 import forge from 'node-forge';
 import {
   AbstractCbcCipher,
   CbcDecryptInternalArgs,
   CbcEncryptInternalArgs,
   GenerateTagArgs,
-} from 'expo-aes-universal';
+  RandomBytes,
+} from 'aes-universal';
 
 /**
  * Class representing a Native CBC mode cipher implementation using node-forge.
@@ -15,10 +15,10 @@ import {
 export class NativeCbcCipher extends AbstractCbcCipher {
   /**
    * Constructs a NativeCbcCipher instance.
-   * @param cryptoModule - The crypto module to be used for cryptographic operations.
+   * @param randomBytes - The random bytes function to be used for cryptographic operations.
    */
-  constructor(cryptoModule: CryptoModule) {
-    super(cryptoModule);
+  constructor(randomBytes: RandomBytes) {
+    super(randomBytes);
   }
 
   /**
@@ -27,11 +27,11 @@ export class NativeCbcCipher extends AbstractCbcCipher {
    * @returns A promise that resolves to the encrypted data as a Uint8Array.
    * @throws Error if encryption fails
    */
-  async encryptInternal({
+  encryptInternal = async ({
     encRawKey,
     iv,
     plaintext,
-  }: CbcEncryptInternalArgs): Promise<Uint8Array> {
+  }: CbcEncryptInternalArgs): Promise<Uint8Array> => {
     const keyBinary = forge.util.binary.raw.encode(encRawKey);
     const ivBinary = forge.util.binary.raw.encode(iv);
 
@@ -49,7 +49,7 @@ export class NativeCbcCipher extends AbstractCbcCipher {
     }
 
     return forge.util.binary.raw.decode(cipher.output.getBytes());
-  }
+  };
 
   /**
    * Performs the internal decryption process using the AES-CBC algorithm via node-forge.
@@ -57,11 +57,11 @@ export class NativeCbcCipher extends AbstractCbcCipher {
    * @returns A promise that resolves to the decrypted data as a Uint8Array.
    * @throws Error if decryption fails
    */
-  async decryptInternal({
+  decryptInternal = async ({
     encRawKey,
     iv,
     ciphertext,
-  }: CbcDecryptInternalArgs): Promise<Uint8Array> {
+  }: CbcDecryptInternalArgs): Promise<Uint8Array> => {
     const keyBinary = forge.util.binary.raw.encode(encRawKey);
     const ivBinary = forge.util.binary.raw.encode(iv);
 
@@ -79,18 +79,18 @@ export class NativeCbcCipher extends AbstractCbcCipher {
     }
 
     return forge.util.binary.raw.decode(decipher.output.getBytes());
-  }
+  };
 
   /**
    * Generates a tag using the HMAC algorithm via node-forge.
    * @param args - The arguments required for tag generation, including the raw MAC key, MAC data, and key bits.
    * @returns A promise that resolves to the generated tag as a Uint8Array.
    */
-  async generateTag({
+  generateTag = async ({
     macRawKey,
     macData,
     keyBits,
-  }: GenerateTagArgs): Promise<Uint8Array> {
+  }: GenerateTagArgs): Promise<Uint8Array> => {
     const algorithm = `sha${keyBits << 1}` as forge.md.Algorithm;
     const hmac = forge.hmac.create();
     hmac.start(algorithm, forge.util.binary.raw.encode(macRawKey));
@@ -99,5 +99,5 @@ export class NativeCbcCipher extends AbstractCbcCipher {
     return forge.util.binary.raw
       .decode(hmac.digest().getBytes())
       .slice(0, keyBits >> 3);
-  }
+  };
 }

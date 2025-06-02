@@ -6,17 +6,15 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'ExpoAesUniversalNative',
       fileName: (format) => `index.${format === 'es' ? 'mjs' : 'cjs'}`,
       formats: ['es', 'cjs'],
     },
     rollupOptions: {
-      external: ['expo-aes-universal', 'expo-crypto-universal', 'node-forge'],
+      external: ['aes-universal', 'node-forge'],
     },
   },
   plugins: [
     dts({
-      include: ['src'],
       rollupTypes: true,
     }),
   ],

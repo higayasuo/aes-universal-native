@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NodeGcmCipher } from 'expo-aes-universal-node';
+import { describe, it, expect, vi } from 'vitest';
+import { NodeGcmCipher } from 'aes-universal-node';
 import { NativeGcmCipher } from '../NativeGcmCipher';
-import { CryptoModule } from 'expo-crypto-universal';
 
 const keyConfigs = [
   { enc: 'A128GCM', keyBytes: 16 },
@@ -10,19 +9,11 @@ const keyConfigs = [
 ] as const;
 
 describe('GcmCipher.decrypt', () => {
-  let mockCryptoModule: CryptoModule;
-  let nativeCipher: NativeGcmCipher;
-  let nodeCipher: NodeGcmCipher;
-
-  beforeEach(() => {
-    mockCryptoModule = {
-      getRandomBytes: vi
-        .fn()
-        .mockImplementation((size) => new Uint8Array(size).fill(0x42)),
-    } as unknown as CryptoModule;
-    nativeCipher = new NativeGcmCipher(mockCryptoModule);
-    nodeCipher = new NodeGcmCipher(mockCryptoModule);
-  });
+  const getRandomBytes = vi
+    .fn()
+    .mockImplementation((size) => new Uint8Array(size).fill(0x42));
+  const nativeCipher = new NativeGcmCipher(getRandomBytes);
+  const nodeCipher = new NodeGcmCipher(getRandomBytes);
 
   it.each(keyConfigs)(
     'should produce the same result across all implementations for %s',

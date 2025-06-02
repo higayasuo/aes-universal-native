@@ -1,24 +1,19 @@
-# expo-aes-universal-native
+# aes-universal-native
 
-Native implementation of expo-aes-universal for Expo applications.
+Native implementation of aes-universal.
 
 ## Installation
 
 ```bash
-npm install expo-aes-universal-native
+npm install aes-universal-native
 ```
 
 ## Peer Dependencies
 
 This package requires the following peer dependencies:
 
-- `expo-aes-universal`: The base package that defines the interfaces
-- `expo-crypto-universal`: The base package that defines the crypto interfaces
-- `expo-crypto-universal-native`: Provides native crypto implementation
-
-```bash
-npm install expo-aes-universal expo-crypto-universal expo-crypto-universal-native
-```
+- `aes-universal`: The base package that defines the interfaces
+- `node-forge`: The crypto library
 
 ## AES-128
 
@@ -31,14 +26,14 @@ In CBC mode, the Content Encryption Key (CEK) includes both the encryption key a
 - A128CBC-HS256: 32 bytes (16 bytes for encryption + 16 bytes for MAC)
 
 ```typescript
-import { NativeCryptoModule } from 'expo-crypto-universal-native';
-import { NativeCbcCipher } from 'expo-aes-universal-native';
+import { nativeCryptoModule } from 'expo-crypto-universal-native';
+import { NativeCbcCipher } from 'aes-universal-native';
 
-// Create crypto module
-const crypto = new NativeCryptoModule();
+// Random bytes function
+const { getRandomBytes } = nativeCryptoModule;
 
 // Create cipher instance
-const cipher = new NativeCbcCipher(crypto);
+const cipher = new NativeCbcCipher(getRandomBytes);
 
 // Define plaintext and AAD
 const plaintext = new Uint8Array([1, 2, 3, 4]);
@@ -47,7 +42,7 @@ const plaintext = new Uint8Array([1, 2, 3, 4]);
 const aad = new Uint8Array([5, 6, 7, 8]);
 
 // Generate random CEK for AES-128-CBC-HS256
-const cek = await crypto.getRandomBytes(32); // 32 bytes (16 for encryption + 16 for MAC)
+const cek = await getRandomBytes(32); // 32 bytes (16 for encryption + 16 for MAC)
 
 // Encrypt data
 const { ciphertext, tag, iv } = await cipher.encrypt({
@@ -79,14 +74,14 @@ In GCM mode, the Content Encryption Key (CEK) is used directly for encryption:
 - A128GCM: 16 bytes
 
 ```typescript
-import { NativeCryptoModule } from 'expo-crypto-universal-native';
-import { NativeGcmCipher } from 'expo-aes-universal-native';
+import { nativeCryptoModule } from 'expo-crypto-universal-native';
+import { NativeGcmCipher } from 'aes-universal-native';
 
-// Create crypto module
-const crypto = new NativeCryptoModule();
+// Random bytes function
+const { getRandomBytes } = nativeCryptoModule;
 
 // Create cipher instance
-const cipher = new NativeGcmCipher(crypto);
+const cipher = new NativeGcmCipher(getRandomBytes);
 
 // Define plaintext and AAD
 const plaintext = new Uint8Array([1, 2, 3, 4]);
@@ -95,7 +90,7 @@ const plaintext = new Uint8Array([1, 2, 3, 4]);
 const aad = new Uint8Array([5, 6, 7, 8]);
 
 // Generate random CEK for AES-128-GCM
-const cek = await crypto.getRandomBytes(16); // 16 bytes
+const cek = await getRandomBytes(16); // 16 bytes
 
 // Encrypt data
 const { ciphertext, tag, iv } = await cipher.encrypt({
@@ -129,14 +124,14 @@ In CBC mode, the Content Encryption Key (CEK) includes both the encryption key a
 - A192CBC-HS384: 48 bytes (24 bytes for encryption + 24 bytes for MAC)
 
 ```typescript
-import { NativeCryptoModule } from 'expo-crypto-universal-native';
-import { NativeCbcCipher } from 'expo-aes-universal-native';
+import { nativeCryptoModule } from 'expo-crypto-universal-native';
+import { NativeCbcCipher } from 'aes-universal-native';
 
-// Create crypto module
-const crypto = new NativeCryptoModule();
+// Random bytes function
+const { getRandomBytes } = nativeCryptoModule;
 
 // Create cipher instance
-const cipher = new NativeCbcCipher(crypto);
+const cipher = new NativeCbcCipher(getRandomBytes);
 
 // Define plaintext and AAD
 const plaintext = new Uint8Array([1, 2, 3, 4]);
@@ -145,7 +140,7 @@ const plaintext = new Uint8Array([1, 2, 3, 4]);
 const aad = new Uint8Array([5, 6, 7, 8]);
 
 // Generate random CEK for AES-192-CBC-HS384
-const cek = await crypto.getRandomBytes(48); // 48 bytes (24 for encryption + 24 for MAC)
+const cek = await getRandomBytes(48); // 48 bytes (24 for encryption + 24 for MAC)
 
 // Encrypt data
 const { ciphertext, tag, iv } = await cipher.encrypt({
@@ -177,14 +172,14 @@ In GCM mode, the Content Encryption Key (CEK) is used directly for encryption:
 - A192GCM: 24 bytes
 
 ```typescript
-import { NativeCryptoModule } from 'expo-crypto-universal-native';
-import { NativeGcmCipher } from 'expo-aes-universal-native';
+import { nativeCryptoModule } from 'expo-crypto-universal-native';
+import { NativeGcmCipher } from 'aes-universal-native';
 
-// Create crypto module
-const crypto = new NativeCryptoModule();
+// Random bytes function
+const { getRandomBytes } = nativeCryptoModule;
 
 // Create cipher instance
-const cipher = new NativeGcmCipher(crypto);
+const cipher = new NativeGcmCipher(getRandomBytes);
 
 // Define plaintext and AAD
 const plaintext = new Uint8Array([1, 2, 3, 4]);
@@ -193,7 +188,7 @@ const plaintext = new Uint8Array([1, 2, 3, 4]);
 const aad = new Uint8Array([5, 6, 7, 8]);
 
 // Generate random CEK for AES-192-GCM
-const cek = await crypto.getRandomBytes(24); // 24 bytes
+const cek = await getRandomBytes(24); // 24 bytes
 
 // Encrypt data
 const { ciphertext, tag, iv } = await cipher.encrypt({
@@ -227,14 +222,14 @@ In CBC mode, the Content Encryption Key (CEK) includes both the encryption key a
 - A256CBC-HS512: 64 bytes (32 bytes for encryption + 32 bytes for MAC)
 
 ```typescript
-import { NativeCryptoModule } from 'expo-crypto-universal-native';
-import { NativeCbcCipher } from 'expo-aes-universal-native';
+import { nativeCryptoModule } from 'expo-crypto-universal-native';
+import { NativeCbcCipher } from 'aes-universal-native';
 
-// Create crypto module
-const crypto = new NativeCryptoModule();
+// Random bytes function
+const { getRandomBytes } = nativeCryptoModule;
 
 // Create cipher instance
-const cipher = new NativeCbcCipher(crypto);
+const cipher = new NativeCbcCipher(getRandomBytes);
 
 // Define plaintext and AAD
 const plaintext = new Uint8Array([1, 2, 3, 4]);
@@ -243,7 +238,7 @@ const plaintext = new Uint8Array([1, 2, 3, 4]);
 const aad = new Uint8Array([5, 6, 7, 8]);
 
 // Generate random CEK for AES-256-CBC-HS512
-const cek = await crypto.getRandomBytes(64); // 64 bytes (32 for encryption + 32 for MAC)
+const cek = await getRandomBytes(64); // 64 bytes (32 for encryption + 32 for MAC)
 
 // Encrypt data
 const { ciphertext, tag, iv } = await cipher.encrypt({
@@ -275,14 +270,14 @@ In GCM mode, the Content Encryption Key (CEK) is used directly for encryption:
 - A256GCM: 32 bytes
 
 ```typescript
-import { NativeCryptoModule } from 'expo-crypto-universal-native';
-import { NativeGcmCipher } from 'expo-aes-universal-native';
+import { nativeCryptoModule } from 'expo-crypto-universal-native';
+import { NativeGcmCipher } from 'aes-universal-native';
 
-// Create crypto module
-const crypto = new NativeCryptoModule();
+// Random bytes function
+const { getRandomBytes } = nativeCryptoModule;
 
 // Create cipher instance
-const cipher = new NativeGcmCipher(crypto);
+const cipher = new NativeGcmCipher(getRandomBytes);
 
 // Define plaintext and AAD
 const plaintext = new Uint8Array([1, 2, 3, 4]);
@@ -291,7 +286,7 @@ const plaintext = new Uint8Array([1, 2, 3, 4]);
 const aad = new Uint8Array([5, 6, 7, 8]);
 
 // Generate random CEK for AES-256-GCM
-const cek = await crypto.getRandomBytes(32); // 32 bytes
+const cek = await getRandomBytes(32); // 32 bytes
 
 // Encrypt data
 const { ciphertext, tag, iv } = await cipher.encrypt({

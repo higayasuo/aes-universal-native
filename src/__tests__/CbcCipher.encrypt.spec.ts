@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NodeCbcCipher } from 'expo-aes-universal-node';
+import { describe, it, expect, vi } from 'vitest';
+import { NodeCbcCipher } from 'aes-universal-node';
 import { NativeCbcCipher } from '../NativeCbcCipher';
-import { CryptoModule } from 'expo-crypto-universal';
 
 const keyConfigs = [
   { enc: 'A128CBC-HS256', keyBytes: 16 },
@@ -10,19 +9,11 @@ const keyConfigs = [
 ] as const;
 
 describe('CbcCipher.encrypt', () => {
-  let mockCryptoModule: CryptoModule;
-  let nativeCipher: NativeCbcCipher;
-  let nodeCipher: NodeCbcCipher;
-
-  beforeEach(() => {
-    mockCryptoModule = {
-      getRandomBytes: vi
-        .fn()
-        .mockImplementation((size) => new Uint8Array(size).fill(0x42)),
-    } as unknown as CryptoModule;
-    nativeCipher = new NativeCbcCipher(mockCryptoModule);
-    nodeCipher = new NodeCbcCipher(mockCryptoModule);
-  });
+  const getRandomBytes = vi
+    .fn()
+    .mockImplementation((size) => new Uint8Array(size).fill(0x42));
+  const nativeCipher = new NativeCbcCipher(getRandomBytes);
+  const nodeCipher = new NodeCbcCipher(getRandomBytes);
 
   it.each(keyConfigs)(
     'should produce the same result across all implementations for %s',

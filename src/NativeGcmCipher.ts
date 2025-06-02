@@ -1,10 +1,10 @@
-import { CryptoModule } from 'expo-crypto-universal';
 import {
   AbstractGcmCipher,
   GcmDecryptInternalArgs,
   GcmEncryptInternalArgs,
   GcmEncryptInternalResult,
-} from 'expo-aes-universal';
+  RandomBytes,
+} from 'aes-universal';
 import forge from 'node-forge';
 
 /**
@@ -15,10 +15,10 @@ import forge from 'node-forge';
 export class NativeGcmCipher extends AbstractGcmCipher {
   /**
    * Constructs a NativeGcmCipher instance.
-   * @param cryptoModule - The crypto module to be used for cryptographic operations.
+   * @param randomBytes - The random bytes function to be used for cryptographic operations.
    */
-  constructor(cryptoModule: CryptoModule) {
-    super(cryptoModule);
+  constructor(randomBytes: RandomBytes) {
+    super(randomBytes);
   }
 
   /**
@@ -27,12 +27,12 @@ export class NativeGcmCipher extends AbstractGcmCipher {
    * @returns A promise that resolves to the encrypted data and authentication tag as a Uint8Array.
    * @throws Error if encryption fails or IV length is invalid
    */
-  async encryptInternal({
+  encryptInternal = async ({
     encRawKey,
     iv,
     plaintext,
     aad,
-  }: GcmEncryptInternalArgs): Promise<GcmEncryptInternalResult> {
+  }: GcmEncryptInternalArgs): Promise<GcmEncryptInternalResult> => {
     if (iv.length !== 12) {
       throw new Error('IV must be 12 bytes for AES-GCM');
     }
@@ -60,7 +60,7 @@ export class NativeGcmCipher extends AbstractGcmCipher {
       ciphertext: forge.util.binary.raw.decode(cipher.output.getBytes()),
       tag: forge.util.binary.raw.decode(cipher.mode.tag.getBytes()),
     };
-  }
+  };
 
   /**
    * Performs the internal decryption process using the AES-GCM algorithm via node-forge.
@@ -68,13 +68,13 @@ export class NativeGcmCipher extends AbstractGcmCipher {
    * @returns A promise that resolves to the decrypted data as a Uint8Array.
    * @throws Error if decryption fails, authentication fails, or IV length is invalid
    */
-  async decryptInternal({
+  decryptInternal = async ({
     encRawKey,
     iv,
     ciphertext,
     tag,
     aad,
-  }: GcmDecryptInternalArgs): Promise<Uint8Array> {
+  }: GcmDecryptInternalArgs): Promise<Uint8Array> => {
     const encKeyBinary = forge.util.binary.raw.encode(encRawKey);
     const ivBinary = forge.util.binary.raw.encode(iv);
     const ciphertextBinary = forge.util.binary.raw.encode(ciphertext);
@@ -97,5 +97,5 @@ export class NativeGcmCipher extends AbstractGcmCipher {
     }
 
     return forge.util.binary.raw.decode(decipher.output.getBytes());
-  }
+  };
 }

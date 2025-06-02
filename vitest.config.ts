@@ -11,9 +11,4 @@ export default defineConfig({
       exclude: ['node_modules/', 'dist/'],
     },
   },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-    },
-  },
 });
