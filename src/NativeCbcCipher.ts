@@ -89,15 +89,15 @@ export class NativeCbcCipher extends AbstractCbcCipher {
   generateTag = async ({
     macRawKey,
     macData,
-    keyBits,
+    keyBitLength,
   }: GenerateTagArgs): Promise<Uint8Array> => {
-    const algorithm = `sha${keyBits << 1}` as forge.md.Algorithm;
+    const algorithm = `sha${keyBitLength << 1}` as forge.md.Algorithm;
     const hmac = forge.hmac.create();
     hmac.start(algorithm, forge.util.binary.raw.encode(macRawKey));
     hmac.update(forge.util.binary.raw.encode(macData));
 
     return forge.util.binary.raw
       .decode(hmac.digest().getBytes())
-      .slice(0, keyBits >> 3);
+      .slice(0, keyBitLength >> 3);
   };
 }
