@@ -1,7 +1,7 @@
 import {
   AbstractGcmCipher,
-  GcmDecryptInternalArgs,
-  GcmEncryptInternalArgs,
+  GcmDecryptInternalParams,
+  GcmEncryptInternalParams,
   GcmEncryptInternalResult,
   RandomBytes,
 } from 'aes-universal';
@@ -23,7 +23,7 @@ export class NativeGcmCipher extends AbstractGcmCipher {
 
   /**
    * Performs the internal encryption process using the AES-GCM algorithm via node-forge.
-   * @param args - The arguments required for encryption, including the raw encryption key, IV, plaintext, and additional authenticated data.
+   * @param params - The arguments required for encryption, including the raw encryption key, IV, plaintext, and additional authenticated data.
    * @returns A promise that resolves to the encrypted data and authentication tag as a Uint8Array.
    * @throws Error if encryption fails or IV length is invalid
    */
@@ -32,7 +32,7 @@ export class NativeGcmCipher extends AbstractGcmCipher {
     iv,
     plaintext,
     aad,
-  }: GcmEncryptInternalArgs): Promise<GcmEncryptInternalResult> => {
+  }: GcmEncryptInternalParams): Promise<GcmEncryptInternalResult> => {
     if (iv.length !== 12) {
       throw new Error('IV must be 12 bytes for AES-GCM');
     }
@@ -64,7 +64,7 @@ export class NativeGcmCipher extends AbstractGcmCipher {
 
   /**
    * Performs the internal decryption process using the AES-GCM algorithm via node-forge.
-   * @param args - The arguments required for decryption, including the raw encryption key, IV, ciphertext, authentication tag, and additional authenticated data.
+   * @param params - The arguments required for decryption, including the raw encryption key, IV, ciphertext, authentication tag, and additional authenticated data.
    * @returns A promise that resolves to the decrypted data as a Uint8Array.
    * @throws Error if decryption fails, authentication fails, or IV length is invalid
    */
@@ -74,7 +74,7 @@ export class NativeGcmCipher extends AbstractGcmCipher {
     ciphertext,
     tag,
     aad,
-  }: GcmDecryptInternalArgs): Promise<Uint8Array> => {
+  }: GcmDecryptInternalParams): Promise<Uint8Array> => {
     const encKeyBinary = forge.util.binary.raw.encode(encRawKey);
     const ivBinary = forge.util.binary.raw.encode(iv);
     const ciphertextBinary = forge.util.binary.raw.encode(ciphertext);

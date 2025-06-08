@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2025-06-08
+
+### Added
+
+- Implemented NativeAesCipher class that provides a unified interface for both CBC and GCM modes
+- Added support for all AES key sizes (128, 192, 256 bits) in both CBC and GCM modes
+
+### Changed
+
+- Updated README.md to use constants for encryption algorithms
+- Improved code example readability and maintainability
+- Fixed incorrect JSDoc comment in NativeAesCipher.ts
+
 ## [0.1.7] - 2025-06-04
 
 ### Changed

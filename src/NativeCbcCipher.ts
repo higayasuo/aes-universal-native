@@ -1,9 +1,9 @@
 import forge from 'node-forge';
 import {
   AbstractCbcCipher,
-  CbcDecryptInternalArgs,
-  CbcEncryptInternalArgs,
-  GenerateTagArgs,
+  CbcDecryptInternalParams,
+  CbcEncryptInternalParams,
+  GenerateTagParams,
   RandomBytes,
 } from 'aes-universal';
 
@@ -23,7 +23,7 @@ export class NativeCbcCipher extends AbstractCbcCipher {
 
   /**
    * Performs the internal encryption process using the AES-CBC algorithm via node-forge.
-   * @param args - The arguments required for encryption, including the raw encryption key, IV, and plaintext.
+   * @param params - The arguments required for encryption, including the raw encryption key, IV, and plaintext.
    * @returns A promise that resolves to the encrypted data as a Uint8Array.
    * @throws Error if encryption fails
    */
@@ -31,7 +31,7 @@ export class NativeCbcCipher extends AbstractCbcCipher {
     encRawKey,
     iv,
     plaintext,
-  }: CbcEncryptInternalArgs): Promise<Uint8Array> => {
+  }: CbcEncryptInternalParams): Promise<Uint8Array> => {
     const keyBinary = forge.util.binary.raw.encode(encRawKey);
     const ivBinary = forge.util.binary.raw.encode(iv);
 
@@ -53,7 +53,7 @@ export class NativeCbcCipher extends AbstractCbcCipher {
 
   /**
    * Performs the internal decryption process using the AES-CBC algorithm via node-forge.
-   * @param args - The arguments required for decryption, including the raw encryption key, IV, and ciphertext.
+   * @param params - The arguments required for decryption, including the raw encryption key, IV, and ciphertext.
    * @returns A promise that resolves to the decrypted data as a Uint8Array.
    * @throws Error if decryption fails
    */
@@ -61,7 +61,7 @@ export class NativeCbcCipher extends AbstractCbcCipher {
     encRawKey,
     iv,
     ciphertext,
-  }: CbcDecryptInternalArgs): Promise<Uint8Array> => {
+  }: CbcDecryptInternalParams): Promise<Uint8Array> => {
     const keyBinary = forge.util.binary.raw.encode(encRawKey);
     const ivBinary = forge.util.binary.raw.encode(iv);
 
@@ -83,14 +83,14 @@ export class NativeCbcCipher extends AbstractCbcCipher {
 
   /**
    * Generates a tag using the HMAC algorithm via node-forge.
-   * @param args - The arguments required for tag generation, including the raw MAC key, MAC data, and key bits.
+   * @param params - The arguments required for tag generation, including the raw MAC key, MAC data, and key bits.
    * @returns A promise that resolves to the generated tag as a Uint8Array.
    */
   generateTag = async ({
     macRawKey,
     macData,
     keyBitLength,
-  }: GenerateTagArgs): Promise<Uint8Array> => {
+  }: GenerateTagParams): Promise<Uint8Array> => {
     const algorithm = `sha${keyBitLength << 1}` as forge.md.Algorithm;
     const hmac = forge.hmac.create();
     hmac.start(algorithm, forge.util.binary.raw.encode(macRawKey));
