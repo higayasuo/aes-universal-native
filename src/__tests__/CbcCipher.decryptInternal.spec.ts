@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { randomBytes } from '@noble/hashes/utils';
 import { NodeCbcCipher } from 'aes-universal-node';
 import { NativeCbcCipher } from '../NativeCbcCipher';
 
@@ -9,17 +10,13 @@ const keyConfigs = [
 ] as const;
 
 describe('CbcCipher.decryptInternal', () => {
-  const getRandomBytes = vi
-    .fn()
-    .mockImplementation((size) => new Uint8Array(size).fill(0x42));
-  const nativeCipher = new NativeCbcCipher(getRandomBytes);
-  const nodeCipher = new NodeCbcCipher(getRandomBytes);
+  const nativeCipher = new NativeCbcCipher();
+  const nodeCipher = new NodeCbcCipher();
 
-  it.each(keyConfigs)(
-    'should produce the same result across all implementations for %s',
-    async ({ keyBytes }) => {
-      const encRawKey = new Uint8Array(keyBytes).fill(0xaa);
-      const iv = new Uint8Array(16).fill(0x42);
+  describe('should produce the same result across all implementations', () => {
+    it.each(keyConfigs)('for $enc', async ({ keyBytes }) => {
+      const encRawKey = randomBytes(keyBytes);
+      const iv = randomBytes(16);
       const plaintext = new Uint8Array([1, 2, 3]);
 
       const ciphertext = await nodeCipher.encryptInternal({
@@ -41,14 +38,13 @@ describe('CbcCipher.decryptInternal', () => {
 
       expect(nativeResult).toEqual(nodeResult);
       expect(nativeResult).toEqual(plaintext);
-    },
-  );
+    });
+  });
 
-  it.each(keyConfigs)(
-    'should handle empty ciphertext consistently for %s',
-    async ({ keyBytes }) => {
-      const encRawKey = new Uint8Array(keyBytes).fill(0xaa);
-      const iv = new Uint8Array(16).fill(0x42);
+  describe('should handle empty ciphertext consistently', () => {
+    it.each(keyConfigs)('for $enc', async ({ keyBytes }) => {
+      const encRawKey = randomBytes(keyBytes);
+      const iv = randomBytes(16);
       const plaintext = new Uint8Array(0);
 
       const ciphertext = await nodeCipher.encryptInternal({
@@ -70,14 +66,13 @@ describe('CbcCipher.decryptInternal', () => {
 
       expect(nativeResult).toEqual(nodeResult);
       expect(nativeResult).toEqual(plaintext);
-    },
-  );
+    });
+  });
 
-  it.each(keyConfigs)(
-    'should handle block-aligned ciphertext with PKCS#7 padding consistently for %s',
-    async ({ keyBytes }) => {
-      const encRawKey = new Uint8Array(keyBytes).fill(0xaa);
-      const iv = new Uint8Array(16).fill(0x42);
+  describe('should handle block-aligned ciphertext with PKCS#7 padding consistently', () => {
+    it.each(keyConfigs)('for $enc', async ({ keyBytes }) => {
+      const encRawKey = randomBytes(keyBytes);
+      const iv = randomBytes(16);
       const plaintext = new Uint8Array(1024).fill(0xaa);
 
       const ciphertext = await nodeCipher.encryptInternal({
@@ -99,6 +94,6 @@ describe('CbcCipher.decryptInternal', () => {
 
       expect(nativeResult).toEqual(nodeResult);
       expect(nativeResult).toEqual(plaintext);
-    },
-  );
+    });
+  });
 });

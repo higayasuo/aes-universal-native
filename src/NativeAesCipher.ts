@@ -1,4 +1,4 @@
-import { AesCipher, RandomBytes } from 'aes-universal';
+import { AesCipher } from 'aes-universal';
 import { NativeCbcCipher } from './NativeCbcCipher';
 import { NativeGcmCipher } from './NativeGcmCipher';
 
@@ -8,23 +8,17 @@ import { NativeGcmCipher } from './NativeGcmCipher';
  * This class extends the base AesCipher class and provides implementations
  * for both CBC and GCM modes using node-forge functionality.
  */
-export class NativeAesCipher extends AesCipher<
-  NativeCbcCipher,
-  typeof NativeCbcCipher,
-  NativeGcmCipher,
-  typeof NativeGcmCipher
-> {
-  /**
-   * Creates a new instance of NativeAesCipher.
-   *
-   * @param randomBytes - Function that generates cryptographically secure random bytes
-   *                      Must implement the RandomBytes interface from aes-universal
-   */
-  constructor(randomBytes: RandomBytes) {
+export class NativeAesCipher extends AesCipher {
+  constructor() {
     super({
-      cbc: NativeCbcCipher,
-      gcm: NativeGcmCipher,
-      randomBytes,
+      cbc: new NativeCbcCipher(),
+      gcm: new NativeGcmCipher(),
     });
   }
 }
+
+/**
+ * An instance of {@link NativeAesCipher}, providing AES encryption and decryption
+ * using native (node-forge) implementations for CBC and GCM modes.
+ */
+export const nativeAesCipher = new NativeAesCipher();

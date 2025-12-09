@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { randomBytes } from '@noble/hashes/utils';
 import { NodeCbcCipher } from 'aes-universal-node';
 import { NativeCbcCipher } from '../NativeCbcCipher';
 
@@ -9,16 +10,12 @@ const keyConfigs = [
 ] as const;
 
 describe('CbcCipher.generateTag', () => {
-  const getRandomBytes = vi
-    .fn()
-    .mockImplementation((size) => new Uint8Array(size).fill(0x42));
-  const nativeCipher = new NativeCbcCipher(getRandomBytes);
-  const nodeCipher = new NodeCbcCipher(getRandomBytes);
+  const nativeCipher = new NativeCbcCipher();
+  const nodeCipher = new NodeCbcCipher();
 
-  it.each(keyConfigs)(
-    'should produce the same result across all implementations for %s',
-    async ({ keyBitLength }) => {
-      const macRawKey = new Uint8Array(keyBitLength / 8).fill(0xaa);
+  describe('should produce the same result across all implementations', () => {
+    it.each(keyConfigs)('for $enc', async ({ keyBitLength }) => {
+      const macRawKey = randomBytes(keyBitLength / 8);
       const macData = new Uint8Array([1, 2, 3]);
 
       const nativeResult = await nativeCipher.generateTag({
@@ -34,13 +31,12 @@ describe('CbcCipher.generateTag', () => {
 
       expect(nativeResult).toEqual(nodeResult);
       expect(nativeResult.length).toBe(keyBitLength / 8);
-    },
-  );
+    });
+  });
 
-  it.each(keyConfigs)(
-    'should handle key size %s consistently',
-    async ({ keyBitLength }) => {
-      const macRawKey = new Uint8Array(keyBitLength / 8).fill(0xaa);
+  describe('should handle key size consistently', () => {
+    it.each(keyConfigs)('for $enc', async ({ keyBitLength }) => {
+      const macRawKey = randomBytes(keyBitLength / 8);
       const macData = new Uint8Array([1, 2, 3]);
 
       const nativeResult = await nativeCipher.generateTag({
@@ -56,13 +52,12 @@ describe('CbcCipher.generateTag', () => {
 
       expect(nativeResult).toEqual(nodeResult);
       expect(nativeResult.length).toBe(keyBitLength / 8);
-    },
-  );
+    });
+  });
 
-  it.each(keyConfigs)(
-    'should handle empty macData consistently for %s',
-    async ({ keyBitLength }) => {
-      const macRawKey = new Uint8Array(keyBitLength / 8).fill(0xaa);
+  describe('should handle empty macData consistently', () => {
+    it.each(keyConfigs)('for $enc', async ({ keyBitLength }) => {
+      const macRawKey = randomBytes(keyBitLength / 8);
       const macData = new Uint8Array(0);
 
       const nativeResult = await nativeCipher.generateTag({
@@ -78,6 +73,6 @@ describe('CbcCipher.generateTag', () => {
 
       expect(nativeResult).toEqual(nodeResult);
       expect(nativeResult.length).toBe(keyBitLength / 8);
-    },
-  );
+    });
+  });
 });

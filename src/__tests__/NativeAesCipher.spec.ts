@@ -1,34 +1,32 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { randomBytes } from '@noble/hashes/utils';
 import { NativeAesCipher } from '../NativeAesCipher';
-import { Enc } from 'aes-universal';
-
-const getRandomBytes = vi
-  .fn()
-  .mockImplementation((size) => new Uint8Array(size).fill(0x42));
 
 const plaintext = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
 const aad = new Uint8Array([9, 8, 7, 6]);
 
 const keyConfigs = [
-  { cek: getRandomBytes(32), keyBitLength: 128, enc: 'A128CBC-HS256' as Enc },
-  { cek: getRandomBytes(48), keyBitLength: 192, enc: 'A192CBC-HS384' as Enc },
-  { cek: getRandomBytes(64), keyBitLength: 256, enc: 'A256CBC-HS512' as Enc },
-  { cek: getRandomBytes(16), keyBitLength: 128, enc: 'A128GCM' as Enc },
-  { cek: getRandomBytes(24), keyBitLength: 192, enc: 'A192GCM' as Enc },
-  { cek: getRandomBytes(32), keyBitLength: 256, enc: 'A256GCM' as Enc },
-];
+  { keyBitLength: 128, enc: 'A128CBC-HS256' },
+  { keyBitLength: 192, enc: 'A192CBC-HS384' },
+  { keyBitLength: 256, enc: 'A256CBC-HS512' },
+  { keyBitLength: 128, enc: 'A128GCM' },
+  { keyBitLength: 192, enc: 'A192GCM' },
+  { keyBitLength: 256, enc: 'A256GCM' },
+] as const;
 
 describe('NativeAesCipher', () => {
-  const cipher = new NativeAesCipher(getRandomBytes);
+  const cipher = new NativeAesCipher();
 
-  it.each(keyConfigs)(
-    'should encrypt and decrypt correctly',
-    async ({ enc, cek }) => {
-      const { ciphertext, tag, iv } = await cipher.encrypt({
+  describe('should encrypt and decrypt correctly', () => {
+    it.each(keyConfigs)('for $enc', async ({ enc }) => {
+      const cek = randomBytes(cipher.getCekByteLength(enc));
+      const iv = randomBytes(cipher.getIvByteLength(enc));
+      const { ciphertext, tag } = await cipher.encrypt({
         enc,
         cek,
         plaintext,
         aad,
+        iv,
       });
       expect(ciphertext.length).toBeGreaterThan(0);
       expect(iv.length).toBe(enc.includes('GCM') ? 12 : 16);
@@ -43,16 +41,19 @@ describe('NativeAesCipher', () => {
         aad,
       });
       expect(decrypted).toEqual(plaintext);
-    },
-  );
+    });
+  });
 
   it('should throw error when decrypting with invalid tag', async () => {
-    const { enc, cek } = keyConfigs[0];
-    const { ciphertext, iv } = await cipher.encrypt({
+    const { enc } = keyConfigs[0];
+    const cek = randomBytes(cipher.getCekByteLength(enc));
+    const iv = randomBytes(cipher.getIvByteLength(enc));
+    const { ciphertext } = await cipher.encrypt({
       enc,
       cek,
       plaintext,
       aad,
+      iv,
     });
 
     const invalidTag = new Uint8Array(cek.length / 2).fill(0);
@@ -66,16 +67,19 @@ describe('NativeAesCipher', () => {
         iv,
         aad,
       }),
-    ).rejects.toThrow();
+    ).rejects.toThrow('Invalid authentication tag');
   });
 
   it('should throw error when decrypting with invalid iv', async () => {
-    const { enc, cek } = keyConfigs[0];
+    const { enc } = keyConfigs[0];
+    const cek = randomBytes(cipher.getCekByteLength(enc));
+    const iv = randomBytes(cipher.getIvByteLength(enc));
     const { ciphertext, tag } = await cipher.encrypt({
       enc,
       cek,
       plaintext,
       aad,
+      iv,
     });
 
     const invalidIv = new Uint8Array(16).fill(0);
@@ -89,16 +93,19 @@ describe('NativeAesCipher', () => {
         iv: invalidIv,
         aad,
       }),
-    ).rejects.toThrow();
+    ).rejects.toThrow('Invalid authentication tag');
   });
 
   it('should throw error when decrypting with invalid aad', async () => {
-    const { enc, cek } = keyConfigs[0];
-    const { ciphertext, tag, iv } = await cipher.encrypt({
+    const { enc } = keyConfigs[0];
+    const cek = randomBytes(cipher.getCekByteLength(enc));
+    const iv = randomBytes(cipher.getIvByteLength(enc));
+    const { ciphertext, tag } = await cipher.encrypt({
       enc,
       cek,
       plaintext,
       aad,
+      iv,
     });
 
     const invalidAad = new Uint8Array([1, 2, 3]);
@@ -112,6 +119,6 @@ describe('NativeAesCipher', () => {
         iv,
         aad: invalidAad,
       }),
-    ).rejects.toThrow();
+    ).rejects.toThrow('Invalid authentication tag');
   });
 });

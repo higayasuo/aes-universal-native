@@ -4,7 +4,6 @@ import {
   CbcDecryptInternalParams,
   CbcEncryptInternalParams,
   GenerateTagParams,
-  RandomBytes,
 } from 'aes-universal';
 
 /**
@@ -13,14 +12,6 @@ import {
  * functionality for native environments using the node-forge cryptographic library.
  */
 export class NativeCbcCipher extends AbstractCbcCipher {
-  /**
-   * Constructs a NativeCbcCipher instance.
-   * @param randomBytes - The random bytes function to be used for cryptographic operations.
-   */
-  constructor(randomBytes: RandomBytes) {
-    super(randomBytes);
-  }
-
   /**
    * Performs the internal encryption process using the AES-CBC algorithm via node-forge.
    * @param params - The arguments required for encryption, including the raw encryption key, IV, and plaintext.

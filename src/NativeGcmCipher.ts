@@ -3,7 +3,6 @@ import {
   GcmDecryptInternalParams,
   GcmEncryptInternalParams,
   GcmEncryptInternalResult,
-  RandomBytes,
 } from 'aes-universal';
 import forge from 'node-forge';
 
@@ -13,14 +12,6 @@ import forge from 'node-forge';
  * functionality for native environments using the node-forge cryptographic library.
  */
 export class NativeGcmCipher extends AbstractGcmCipher {
-  /**
-   * Constructs a NativeGcmCipher instance.
-   * @param randomBytes - The random bytes function to be used for cryptographic operations.
-   */
-  constructor(randomBytes: RandomBytes) {
-    super(randomBytes);
-  }
-
   /**
    * Performs the internal encryption process using the AES-GCM algorithm via node-forge.
    * @param params - The arguments required for encryption, including the raw encryption key, IV, plaintext, and additional authenticated data.

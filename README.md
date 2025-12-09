@@ -36,64 +36,62 @@ In GCM mode, the Content Encryption Key (CEK) is used directly for encryption:
 - A256GCM: 32 bytes
 
 ```typescript
-import { nativeCryptoModule } from 'expo-crypto-universal-native';
-import { NativeAesCipher } from 'aes-universal-native';
-
-// Random bytes function
-const { getRandomBytes } = nativeCryptoModule;
+import { nativeAesCipher } from 'aes-universal-native';
+import { randomBytes } from '@noble/hashes/utils';
 
 // Define encryption algorithms
 const A128CBC_HS256 = 'A128CBC-HS256';
 const A128GCM = 'A128GCM';
-
-// Create cipher instance
-const cipher = new NativeAesCipher(getRandomBytes);
 
 // Define plaintext and AAD
 const plaintext = new Uint8Array([1, 2, 3, 4]);
 const aad = new Uint8Array([5, 6, 7, 8]);
 
 // Example with AES-128-CBC-HS256
-const cekCbc = await cipher.generateCek(A128CBC_HS256);
+const cekCbc = randomBytes(nativeAesCipher.getCekByteLength(A128CBC_HS256));
+const ivCbc = randomBytes(nativeAesCipher.getIvByteLength(A128CBC_HS256));
 
 // Encrypt data
-const resultCbc = await cipher.encrypt({
+const resultCbc = await nativeAesCipher.encrypt({
   enc: A128CBC_HS256, // AES-128 in CBC mode with HMAC-SHA-256
   cek: cekCbc,
   plaintext,
   aad,
+  iv: ivCbc,
 });
 
 // Decrypt data
-const decryptedCbc = await cipher.decrypt({
+const decryptedCbc = await nativeAesCipher.decrypt({
   enc: A128CBC_HS256,
   cek: cekCbc,
   ciphertext: resultCbc.ciphertext,
   tag: resultCbc.tag,
-  iv: resultCbc.iv,
+  iv: ivCbc,
   aad,
 });
 
 expect(decryptedCbc).toEqual(plaintext);
 
 // Example with AES-128-GCM
-const cekGcm = await cipher.generateCek(A128GCM);
+const cekGcm = randomBytes(nativeAesCipher.getCekByteLength(A128GCM));
+const ivGcm = randomBytes(nativeAesCipher.getIvByteLength(A128GCM));
 
 // Encrypt data
-const resultGcm = await cipher.encrypt({
+const resultGcm = await nativeAesCipher.encrypt({
   enc: A128GCM, // AES-128 in GCM mode
   cek: cekGcm,
   plaintext,
   aad,
+  iv: ivGcm,
 });
 
 // Decrypt data
-const decryptedGcm = await cipher.decrypt({
+const decryptedGcm = await nativeAesCipher.decrypt({
   enc: A128GCM,
   cek: cekGcm,
   ciphertext: resultGcm.ciphertext,
   tag: resultGcm.tag,
-  iv: resultGcm.iv,
+  iv: ivGcm,
   aad,
 });
 
